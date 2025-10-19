@@ -43,13 +43,23 @@ This file: [README.md](README.md)
   - rc.local, /etc/rc\*.d
 - Running processes: ps aux, netstat -tulpen or ss -tulpen
 - Listening ports and associated binaries
+- Runtime modules per stack:
+  - PHP (php-fpm pools, apache/php modules, project roots)
+  - Node/Bun (versions, PM2 apps, package manifests)
+  - Python (versions, processes, virtual environments, framework hints)
+  - Containers (docker/podman inventory, compose files, kubelet service status)
 - Containers: docker ps, docker inspect, podman, kubelet hints
 - Filesystem inventory: /opt, /usr/local, /srv, /var/www, web roots, mounted volumes
-- Databases: discovered services (mysql/mariadb, postgresql, mongodb) and instructions to dump
+- Databases: discovered services (MySQL/MariaDB, PostgreSQL, MongoDB, Redis, etc.) with configs and data directory hints
+- Networking: interfaces, routes, DNS, firewall rules, and active listeners
 - Certificates: /etc/letsencrypt, /etc/ssl, application cert files
 - Logs: /var/log, journalctl --no-pager (sample)
 - Configuration files for discovered apps
 - Packageable artifacts: dirs with app binaries, virtualenvs, node_modules, static assets
+- Runtime fingerprints: php-fpm, apache/httpd, node, bun, python, gunicorn, uwsgi, docker, redis, postgres, mysql, etc.
+- Dependency manifests: composer.json, package.json, requirements.txt, Pipfile, poetry.lock, Gemfile, bun.lockb, and similar.
+- Configuration captures for application stacks and infrastructure services.
+- External service endpoints inferred from .env, YAML/JSON configs, docker-compose files, etc.
 
 ## Output format
 
@@ -59,14 +69,47 @@ This file: [README.md](README.md)
 - report/<timestamp>/processes.txt
 - report/<timestamp>/listening-ports.txt
 - report/<timestamp>/filesystems.txt
-- report/<timestamp>/collected-configs/\*.tar.gz
+- report/<timestamp>/users-groups.txt
+- report/<timestamp>/cron.txt
 - report/<timestamp>/migration-plan.md
+- report/<timestamp>/services-runtime.txt
+- report/<timestamp>/applications/{php.txt,node.txt,python.txt,containers.txt}
+- report/<timestamp>/manifests/
+- report/<timestamp>/configs/
+- report/<timestamp>/external-dependencies.csv
+- report/<timestamp>/databases/summary.txt
+- report/<timestamp>/network/networking.txt
 
-## Usage examples
+## Running the toolkit
 
-Basic inventory using SSH key:
+1. Ensure the script is executable on your workstation:
 
-```bash
-# inventory.sh <user>@<host> [ssh_opts...]
-./inventory.sh alice@10.0.0.5 -i ~/.ssh/id_rsa
-```
+   ```bash
+   chmod +x inventory.sh
+   ```
+
+2. Run the inventory by providing the SSH destination and any extra SSH
+   options you normally use. The general syntax is:
+
+   ```bash
+   # inventory.sh <user>@<host> [ssh_opts...]
+   ./inventory.sh alice@10.0.0.5 -i ~/.ssh/id_rsa
+   ```
+
+   Add additional flags as needed, for example to target an alternate
+   port or skip strict host key checking:
+
+   ```bash
+   ./inventory.sh ops@example.com -i ~/.ssh/id_ops -p 2222 -o StrictHostKeyChecking=no
+   ```
+
+3. For password-based connections, pair the script with `sshpass` (listed
+   in the prerequisites) so you can feed the password non-interactively:
+
+   ```bash
+   sshpass -p 'sup3rs3cret' ./inventory.sh root@192.168.1.15
+   ```
+
+4. When the run finishes, inspect the timestamped directory under
+   `report/` for the collected evidence and the generated
+   `migration-plan.md` summary.
